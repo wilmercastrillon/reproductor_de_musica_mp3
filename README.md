@@ -6,8 +6,4 @@ utiliza las librerias externas basic player 3 para la reproduccion de los archiv
 ademas implementa la estrucctura de datos de listas doblemente enlazadas para el manejo
 de las listas de canciones.
 
-Para hacer cualquier modificacion que requiera el uso de algun compilador debe
-tener en cuenta lo siguiente: Ademas del package principal "reproductor_de_musica"
-hay un segundo package llamado iconos donde se guardan las imagenes y gifs usados en
-el programa, el icono del programa tiene una dimension de 128 X 128, las otras imagenes
-tienen una dimension de 32 X 32 y el gif una dimension de 160 X 23.
+Para hacer cualquier modificacion tener en cuanta que las clases deben estar en el package "reproductor_de_musica" y los iconos en el package "iconos"
