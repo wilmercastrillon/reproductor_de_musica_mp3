@@ -711,15 +711,22 @@ public class ventana_principal extends javax.swing.JFrame {
             return;
         }
 
-        File ruta = new File("c:\\listas_de_musica");
-        if (!ruta.exists()) {
-            ruta.mkdir();
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int seleccion = chooser.showOpenDialog(this);
+        File ruta;
+        
+        if (seleccion == JFileChooser.APPROVE_OPTION) {
+            ruta = chooser.getSelectedFile();
+        }else{
+            return;
         }
+    
         String n = JOptionPane.showInputDialog("digite el nombre de la lista");
         if (n == null || n.isEmpty()) {
             return;
         }
-        File save = new File("c:\\listas_de_musica\\" + n + ".lis");
+        File save = new File(ruta.getAbsolutePath() + "\\" + n + ".lis");
         if (save.exists()) {
             save.delete();
         }
@@ -742,7 +749,7 @@ public class ventana_principal extends javax.swing.JFrame {
 
     private void jMenuItem7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem7ActionPerformed
         JOptionPane.showMessageDialog(null, "proyecto final, programacion I\n(estruccturas de datos)");
-        JOptionPane.showMessageDialog(null, "por: Wilmer Castrillon,\nprimera aplicacion grafica\nversion 1.46");
+        JOptionPane.showMessageDialog(null, "por: Wilmer Castrillon,\nprimera aplicacion grafica\nversion 1.47");
     }//GEN-LAST:event_jMenuItem7ActionPerformed
 
     private void cargar_listaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cargar_listaActionPerformed
@@ -793,7 +800,6 @@ public class ventana_principal extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem5ActionPerformed
 
     private void jMenuItem6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem6ActionPerformed
-        JOptionPane.showMessageDialog(null, "las canciones se guardan en\nC:\\listas_de_musica\ncon extension .lis");
         JOptionPane.showMessageDialog(null, "verifique que el nombre de las canciones no tengan\ncaracteres especiales como tildes o apostrofos", "alerta", 1);
     }//GEN-LAST:event_jMenuItem6ActionPerformed
 
