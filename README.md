@@ -6,4 +6,8 @@ utiliza las librerias externas basic player 3 para la reproduccion de los archiv
 ademas implementa la estrucctura de datos de listas doblemente enlazadas para el manejo
 de las listas de canciones.
 
-Para hacer cualquier modificacion tener en cuanta que las clases deben estar en el package "reproductor_de_musica" y los iconos en el package "iconos"
+el programa compilado se encuentra la carpeta dist.
+
+Para hacer cualquier modificacion tener en cuanta que las clases deben estar en el package 
+"reproductor_de_musica" y los iconos  en el package "iconos", las librerias necesarias se 
+encuentran en la direccion dist/lib.
