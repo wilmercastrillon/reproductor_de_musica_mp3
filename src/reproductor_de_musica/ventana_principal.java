@@ -2,6 +2,8 @@ package reproductor_de_musica;
 
 import java.awt.Image;
 import java.awt.Toolkit;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -16,6 +18,7 @@ import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javazoom.jlgui.basicplayer.BasicPlayerException;
@@ -27,6 +30,8 @@ public class ventana_principal extends javax.swing.JFrame {
     private Zplayer player = new Zplayer();
     private Short x = 0;
     private DefaultListModel lista_modelo = new DefaultListModel();
+    private String ultimaLista = "vacio";
+    private boolean cambios = false;
 
     public ventana_principal() {
         setTitle("Reproductor de musica mp3");
@@ -34,9 +39,131 @@ public class ventana_principal extends javax.swing.JFrame {
         Image icon = Toolkit.getDefaultToolkit().getImage(getClass().getResource("/iconos/icono.png"));
         setIconImage(icon);
         initComponents();
+        setLocationRelativeTo(null);
         nombre_can.setEditable(false);
         jSlider1.setEnabled(false);
         jSlider2.setEnabled(false);
+
+        lista_can.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent evt) {
+                JList lista = (JList) evt.getSource();
+                if (evt.getClickCount() == 2) {
+                    int index = lista.locationToIndex(evt.getPoint());
+                    if (index != -1) {
+                        actual = list.get_cancion(index);
+                        x = 0;
+                        playActionPerformed(null);
+                    }
+                }
+            }
+        });
+
+        try {
+            BufferedReader tec = new BufferedReader(new FileReader(System.getProperty("user.dir") + "\\config"));
+            String aux = tec.readLine();
+            if (aux.equals("Si")) {
+                aux = tec.readLine();
+                if (!aux.equals("vacio")) {
+                    cargarLista(aux);
+                }
+            } else {
+                cargarListaInicio.setSelected(false);
+            }
+        } catch (Exception e) {
+        }
+
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                if (!list.IsEmpety() && cambios) {
+                    int opcion = JOptionPane.showConfirmDialog(null, "¿Guardar cambios?");
+                    if (opcion == JOptionPane.YES_OPTION) {
+                        if (ultimaLista.equals("vacio")) {
+                            ultimaLista = crearArchivoLista();
+                        }
+                        if (ultimaLista == null) {
+                            ultimaLista = "vacio";
+                        } else {
+                            guardarLista(ultimaLista);
+                        }
+                    }
+                }
+                try {
+                    BufferedWriter bw = new BufferedWriter(
+                            new FileWriter(System.getProperty("user.dir") + "\\config"));
+                    if (cargarListaInicio.isSelected()) {
+                        bw.write("Si\r\n");
+                        bw.write(ultimaLista + "\r\n");
+                    } else {
+                        bw.write("No\r\n");
+                    }
+                    bw.close();
+                } catch (Exception e) {
+                }
+                System.exit(0);
+            }
+        });
+    }
+
+    public void cargarLista(String ruta) {
+        try {
+            BufferedReader tec = new BufferedReader(new FileReader(ruta));
+            String input[];
+            tec.readLine();
+
+            while (tec.ready()) {
+                input = tec.readLine().split("<");
+                System.out.println(input[0] + " , " + input[1]);
+                list.insertar(input[0], input[1]);
+                lista_modelo.addElement(input[0]);
+            }
+            ultimaLista = ruta;
+            cambios = false;
+        } catch (FileNotFoundException ex) {
+            JOptionPane.showMessageDialog(null, "Ha ocurrido un error\nal cargar la lista!!!", "alerta", 1);
+        } catch (IOException ex) {
+            JOptionPane.showMessageDialog(null, "Ha ocurrido un error!!!", "alerta", 1);
+        }
+        lista_can.setModel(lista_modelo);
+    }
+
+    public void guardarLista(String dir) {
+        try {
+            BufferedWriter tec = new BufferedWriter(new FileWriter(dir));
+            tec.write("\r\n");
+
+            nodo aux = list.first;
+            while (aux != null) {
+                tec.append(aux.nombre + "<" + aux.direccion + "\r\n");
+                aux = aux.siguiente;
+            }
+
+            tec.close();
+        } catch (Exception e) {
+        }
+    }
+
+    public String crearArchivoLista() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int seleccion = chooser.showOpenDialog(this);
+        File ruta;
+
+        if (seleccion == JFileChooser.APPROVE_OPTION) {
+            ruta = chooser.getSelectedFile();
+        } else {
+            return null;
+        }
+
+        String n = JOptionPane.showInputDialog("digite el nombre de la lista");
+        if (n == null || n.isEmpty()) {
+            return null;
+        }
+        File save = new File(ruta.getAbsolutePath() + "\\" + n + ".lis");
+        if (save.exists()) {
+            save.delete();
+        }
+        return save.getAbsolutePath();
     }
 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -75,6 +202,7 @@ public class ventana_principal extends javax.swing.JFrame {
         jLabel6 = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
+        cargarListaInicio = new javax.swing.JCheckBoxMenuItem();
         guardar_lista = new javax.swing.JMenuItem();
         cargar_lista = new javax.swing.JMenuItem();
         jMenuItem7 = new javax.swing.JMenuItem();
@@ -84,7 +212,7 @@ public class ventana_principal extends javax.swing.JFrame {
         jMenuItem5 = new javax.swing.JMenuItem();
         jMenuItem6 = new javax.swing.JMenuItem();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
 
         jScrollPane1.setViewportView(lista_can);
 
@@ -305,8 +433,12 @@ public class ventana_principal extends javax.swing.JFrame {
 
         jMenu1.setText("Archivo");
 
+        cargarListaInicio.setSelected(true);
+        cargarListaInicio.setText("Cargar ultima lista al abrir");
+        jMenu1.add(cargarListaInicio);
+
         guardar_lista.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_G, java.awt.event.InputEvent.CTRL_MASK));
-        guardar_lista.setText("guardar lista");
+        guardar_lista.setText("Guardar lista");
         guardar_lista.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 guardar_listaActionPerformed(evt);
@@ -315,7 +447,7 @@ public class ventana_principal extends javax.swing.JFrame {
         jMenu1.add(guardar_lista);
 
         cargar_lista.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
-        cargar_lista.setText("cargar lista");
+        cargar_lista.setText("Cargar lista");
         cargar_lista.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cargar_listaActionPerformed(evt);
@@ -324,7 +456,7 @@ public class ventana_principal extends javax.swing.JFrame {
         jMenu1.add(cargar_lista);
 
         jMenuItem7.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F2, 0));
-        jMenuItem7.setText("acerca de");
+        jMenuItem7.setText("Acerca de");
         jMenuItem7.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem7ActionPerformed(evt);
@@ -332,7 +464,7 @@ public class ventana_principal extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItem7);
 
-        jMenuItem1.setText("salir");
+        jMenuItem1.setText("Salir");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem1ActionPerformed(evt);
@@ -485,21 +617,30 @@ public class ventana_principal extends javax.swing.JFrame {
     private void agregarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_agregarActionPerformed
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileFilter(new FileNameExtensionFilter("Archivo MP3", "mp3", "mp3"));
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        fileChooser.setMultiSelectionEnabled(true);
         int seleccion = fileChooser.showOpenDialog(this);
 
         if (seleccion == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            String name = file.getName();
-            if (name.length() < 4 || !name.substring(name.length() - 4, name.length()).equalsIgnoreCase(".mp3")) {
-                JOptionPane.showMessageDialog(null, "no es un mp3", "alerta", 0);
-                return;
-            }
+            File files[] = fileChooser.getSelectedFiles();
+            boolean noMp3 = false;
+            cambios = true;
 
-            list.insertar(file.getName(), file.getPath());
-            System.out.println(file.getName());
-            System.out.println(file.getPath());
-            lista_modelo.addElement(file.getName());
-            lista_can.setModel(lista_modelo);
+            for (File file : files) {
+                String name = file.getName();
+                if (name.length() < 4 || !name.substring(name.length() - 4, name.length()).equalsIgnoreCase(".mp3")) {
+                    noMp3 = true;
+                    continue;
+                }
+                list.insertar(file.getName(), file.getPath());
+                System.out.println(file.getName());
+                System.out.println(file.getPath());
+                lista_modelo.addElement(file.getName());
+                lista_can.setModel(lista_modelo);
+            }
+            if (noMp3) {
+                JOptionPane.showMessageDialog(null, "no es un mp3", "alerta", 0);
+            }
         }
     }//GEN-LAST:event_agregarActionPerformed
 
@@ -699,57 +840,28 @@ public class ventana_principal extends javax.swing.JFrame {
                 nombre_can.setText(actual.nombre);
             }
         }
+        cambios = true;
     }//GEN-LAST:event_eliminarActionPerformed
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+        agregarActionPerformed(evt);
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
+
+    private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
+        eliminarActionPerformed(evt);
+    }//GEN-LAST:event_jMenuItem5ActionPerformed
+
+    private void jMenuItem6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem6ActionPerformed
+        JOptionPane.showMessageDialog(null, "verifique que el nombre de las canciones no tengan\ncaracteres especiales como tildes o apostrofos", "alerta", 1);
+    }//GEN-LAST:event_jMenuItem6ActionPerformed
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         System.exit(0);
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
-    private void guardar_listaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_guardar_listaActionPerformed
-        if (list.IsEmpety()) {
-            JOptionPane.showMessageDialog(null, "no hay canciones!!!", "alerta", 1);
-            return;
-        }
-
-        JFileChooser chooser = new JFileChooser();
-        chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        int seleccion = chooser.showOpenDialog(this);
-        File ruta;
-        
-        if (seleccion == JFileChooser.APPROVE_OPTION) {
-            ruta = chooser.getSelectedFile();
-        }else{
-            return;
-        }
-    
-        String n = JOptionPane.showInputDialog("digite el nombre de la lista");
-        if (n == null || n.isEmpty()) {
-            return;
-        }
-        File save = new File(ruta.getAbsolutePath() + "\\" + n + ".lis");
-        if (save.exists()) {
-            save.delete();
-        }
-
-        try {
-            BufferedWriter tec = new BufferedWriter(new FileWriter(save));
-            tec.write("\r\n");
-
-            nodo aux = list.first;
-            while (aux != null) {
-                tec.append(aux.nombre + "<" + aux.direccion + "\r\n");
-                aux = aux.siguiente;
-            }
-
-            tec.close();
-        } catch (IOException ex) {
-            Logger.getLogger(ventana_principal.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }//GEN-LAST:event_guardar_listaActionPerformed
-
     private void jMenuItem7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem7ActionPerformed
         JOptionPane.showMessageDialog(null, "proyecto final, programacion I\n(estructuras de datos)");
-        JOptionPane.showMessageDialog(null, "por: Wilmer Castrillon,\nprimera aplicacion grafica\nversion 1.47");
+        JOptionPane.showMessageDialog(null, "por: Wilmer Castrillon,\nprimera aplicacion grafica\nversion 1.5");
     }//GEN-LAST:event_jMenuItem7ActionPerformed
 
     private void cargar_listaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cargar_listaActionPerformed
@@ -768,40 +880,17 @@ public class ventana_principal extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "no es una lista", "alerta", 0);
                 return;
             }
-
-            try {
-                BufferedReader tec = new BufferedReader(new FileReader(chooser.getSelectedFile()));
-                String input[];
-                tec.readLine();
-
-                while (tec.ready()) {
-                    input = tec.readLine().split("<");
-                    System.out.println(input[0] + " , " + input[1]);
-                    list.insertar(input[0], input[1]);
-                    lista_modelo.addElement(input[0]);
-                }
-            } catch (FileNotFoundException ex) {
-                Logger.getLogger(ventana_principal.class.getName()).log(Level.SEVERE, null, ex);
-                JOptionPane.showMessageDialog(null, "Ha ocurrido un error!!!", "alerta", 1);
-            } catch (IOException ex) {
-                Logger.getLogger(ventana_principal.class.getName()).log(Level.SEVERE, null, ex);
-                JOptionPane.showMessageDialog(null, "Ha ocurrido un error!!!", "alerta", 1);
-            }
-            lista_can.setModel(lista_modelo);
+            cargarLista(chooser.getSelectedFile().getPath());
         }
     }//GEN-LAST:event_cargar_listaActionPerformed
 
-    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
-        agregarActionPerformed(evt);
-    }//GEN-LAST:event_jMenuItem4ActionPerformed
-
-    private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
-        eliminarActionPerformed(evt);
-    }//GEN-LAST:event_jMenuItem5ActionPerformed
-
-    private void jMenuItem6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem6ActionPerformed
-        JOptionPane.showMessageDialog(null, "verifique que el nombre de las canciones no tengan\ncaracteres especiales como tildes o apostrofos", "alerta", 1);
-    }//GEN-LAST:event_jMenuItem6ActionPerformed
+    private void guardar_listaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_guardar_listaActionPerformed
+        if (list.IsEmpety()) {
+            JOptionPane.showMessageDialog(null, "no hay canciones!!!", "alerta", 1);
+            return;
+        }
+        guardarLista(crearArchivoLista());
+    }//GEN-LAST:event_guardar_listaActionPerformed
 
     public static void main(String args[]) {
 
@@ -815,6 +904,7 @@ public class ventana_principal extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton agregar;
     private javax.swing.JButton anterior;
+    private javax.swing.JCheckBoxMenuItem cargarListaInicio;
     private javax.swing.JMenuItem cargar_lista;
     private javax.swing.JButton detener;
     private javax.swing.JButton eliminar;
