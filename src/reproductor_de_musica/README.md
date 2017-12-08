@@ -8,6 +8,5 @@ de las listas de canciones.
 
 el programa compilado se encuentra la carpeta dist.
 
-Para hacer cualquier modificacion tener en cuanta que las clases deben estar en el package 
-"reproductor_de_musica" y los iconos  en el package "iconos", las librerias necesarias se 
-encuentran en la direccion dist/lib.
+Para hacer cualquier modificacion tener en cuenta que que se necesita la libreria 
+basic player 3.
