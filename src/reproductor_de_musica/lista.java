@@ -84,4 +84,16 @@ public class lista {
         b.siguiente.anterior = b.anterior;
         b.siguiente.anterior.siguiente = b.siguiente;
     }
+    
+    public boolean buscar(String nombre, String ruta){
+        nodo aux = first;
+
+        while (aux != null) {
+            if (aux.nombre.equals(nombre) && aux.direccion.equals(ruta)) {
+                return true;
+            }
+            aux = aux.siguiente;
+        }
+        return false;
+    }
 }

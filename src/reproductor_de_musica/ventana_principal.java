@@ -7,10 +7,13 @@ import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.FilterInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.logging.Level;
@@ -27,11 +30,12 @@ public class ventana_principal extends javax.swing.JFrame {
 
     private lista list = new lista();
     private nodo actual = null;
-    private Zplayer player = new Zplayer();
+    private Zplayer player;
     private Short x = 0;
     private DefaultListModel lista_modelo = new DefaultListModel();
     private String ultimaLista = "vacio";
     private boolean cambios = false;
+    protected boolean detenido = false;
 
     public ventana_principal() {
         setTitle("Reproductor de musica mp3");
@@ -103,11 +107,13 @@ public class ventana_principal extends javax.swing.JFrame {
                 System.exit(0);
             }
         });
+        player = new Zplayer(this);
     }
 
     public void cargarLista(String ruta) {
         try {
-            BufferedReader tec = new BufferedReader(new FileReader(ruta));
+            FileInputStream fis = new FileInputStream(new File(ruta));
+            BufferedReader tec = new BufferedReader(new InputStreamReader(fis, "UTF-8"));
             String input[];
             tec.readLine();
 
@@ -139,11 +145,17 @@ public class ventana_principal extends javax.swing.JFrame {
             }
 
             tec.close();
+            cambios = false;
         } catch (Exception e) {
         }
     }
 
     public String crearArchivoLista() {
+        String n = JOptionPane.showInputDialog("digite el nombre de la lista");
+        if (n == null || n.isEmpty()) {
+            return null;
+        }
+        
         JFileChooser chooser = new JFileChooser();
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int seleccion = chooser.showOpenDialog(this);
@@ -152,11 +164,6 @@ public class ventana_principal extends javax.swing.JFrame {
         if (seleccion == JFileChooser.APPROVE_OPTION) {
             ruta = chooser.getSelectedFile();
         } else {
-            return null;
-        }
-
-        String n = JOptionPane.showInputDialog("digite el nombre de la lista");
-        if (n == null || n.isEmpty()) {
             return null;
         }
         File save = new File(ruta.getAbsolutePath() + "\\" + n + ".lis");
@@ -216,14 +223,14 @@ public class ventana_principal extends javax.swing.JFrame {
 
         jScrollPane1.setViewportView(lista_can);
 
-        eliminar.setText("eliminar");
+        eliminar.setText("Quitar canción actual");
         eliminar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 eliminarActionPerformed(evt);
             }
         });
 
-        agregar.setText("agregar");
+        agregar.setText("Agregar canción");
         agregar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 agregarActionPerformed(evt);
@@ -258,7 +265,7 @@ public class ventana_principal extends javax.swing.JFrame {
             }
         });
 
-        detener.setText("detener");
+        detener.setText("Detener reproducción");
         detener.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 detenerActionPerformed(evt);
@@ -446,7 +453,7 @@ public class ventana_principal extends javax.swing.JFrame {
         });
         jMenu1.add(guardar_lista);
 
-        cargar_lista.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+        cargar_lista.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_L, java.awt.event.InputEvent.CTRL_MASK));
         cargar_lista.setText("Cargar lista");
         cargar_lista.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -516,51 +523,50 @@ public class ventana_principal extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(agregar)
                     .addComponent(eliminar)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(detener))
+                    .addComponent(detener)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 20, Short.MAX_VALUE)
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(0, 20, Short.MAX_VALUE)
                                 .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(jLabel6))
-                                    .addComponent(nombre_can, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(59, 59, 59)
-                                .addComponent(jLabel1))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jSeparator1)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel3)
                                 .addGap(18, 18, 18)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jSeparator1)
                                     .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel3)
+                                        .addGap(18, 18, 18)
                                         .addComponent(jSlider1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGap(18, 18, 18)
                                         .addComponent(jLabel4)
                                         .addGap(18, 18, 18)
-                                        .addComponent(jSlider2, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(jSlider2, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(0, 0, Short.MAX_VALUE))
                                     .addGroup(layout.createSequentialGroup()
-                                        .addGap(23, 23, 23)
-                                        .addComponent(anterior)
+                                        .addGap(28, 28, 28)
+                                        .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGap(18, 18, 18)
-                                        .addComponent(play)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(siguiente)))
-                                .addGap(0, 0, Short.MAX_VALUE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(0, 0, Short.MAX_VALUE)
-                                .addComponent(tipo_reproduccion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addContainerGap())
+                                        .addComponent(jLabel6)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(tipo_reproduccion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGap(18, 18, 18)
+                                .addComponent(nombre_can)
+                                .addGap(18, 18, 18)
+                                .addComponent(jLabel1)))
+                        .addContainerGap())
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(106, 106, 106)
+                        .addComponent(anterior)
+                        .addGap(18, 18, 18)
+                        .addComponent(play)
+                        .addGap(18, 18, 18)
+                        .addComponent(siguiente)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -576,17 +582,16 @@ public class ventana_principal extends javax.swing.JFrame {
                                 .addGap(18, 18, 18)
                                 .addComponent(tipo_reproduccion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(30, 30, 30)
-                                .addComponent(jLabel5))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel6)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 55, Short.MAX_VALUE)
+                                .addGap(28, 28, 28)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel5)
+                                    .addComponent(jLabel6, javax.swing.GroupLayout.Alignment.TRAILING))))
+                        .addGap(41, 41, 41)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(anterior, javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(play, javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(siguiente, javax.swing.GroupLayout.Alignment.TRAILING))
-                        .addGap(35, 35, 35)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 51, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.TRAILING)
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -623,13 +628,17 @@ public class ventana_principal extends javax.swing.JFrame {
 
         if (seleccion == JFileChooser.APPROVE_OPTION) {
             File files[] = fileChooser.getSelectedFiles();
-            boolean noMp3 = false;
+            boolean noMp3 = false, repetidos = false;
             cambios = true;
 
             for (File file : files) {
                 String name = file.getName();
                 if (name.length() < 4 || !name.substring(name.length() - 4, name.length()).equalsIgnoreCase(".mp3")) {
                     noMp3 = true;
+                    continue;
+                }
+                if (list.buscar(file.getName(), file.getPath())) {
+                    repetidos = true;
                     continue;
                 }
                 list.insertar(file.getName(), file.getPath());
@@ -639,12 +648,16 @@ public class ventana_principal extends javax.swing.JFrame {
                 lista_can.setModel(lista_modelo);
             }
             if (noMp3) {
-                JOptionPane.showMessageDialog(null, "no es un mp3", "alerta", 0);
+                JOptionPane.showMessageDialog(null, "Se encontro archivo(s) no mp3", "alerta", 0);
+            }
+            if (repetidos) {
+                JOptionPane.showMessageDialog(null, "Se encontraron repetidos", "alerta", 0);
             }
         }
     }//GEN-LAST:event_agregarActionPerformed
 
     private void playActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_playActionPerformed
+        detenido = true;
         if (list.IsEmpety()) {
             JOptionPane.showMessageDialog(null, "no hay canciones", "alerta", 1);
         } else {
@@ -683,9 +696,11 @@ public class ventana_principal extends javax.swing.JFrame {
                 x = 0;
             }
         }
+        detenido = false;
     }//GEN-LAST:event_playActionPerformed
 
     private void detenerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_detenerActionPerformed
+        detenido = true;
         play.setIcon(new ImageIcon(getClass().getResource("/iconos/play.png")));
         try {
             player.control.stop();
@@ -695,6 +710,7 @@ public class ventana_principal extends javax.swing.JFrame {
         } catch (BasicPlayerException ex) {
             Logger.getLogger(ventana_principal.class.getName()).log(Level.SEVERE, null, ex);
         }
+        detenido = false;
     }//GEN-LAST:event_detenerActionPerformed
 
     private void jSlider1StateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_jSlider1StateChanged
@@ -753,6 +769,10 @@ public class ventana_principal extends javax.swing.JFrame {
         player.eq[9] = (float) slidereq9.getValue() / 100;
     }//GEN-LAST:event_slidereq9StateChanged
 
+    protected void eventoSiguiente(){
+        siguienteActionPerformed(null);
+    }
+    
     private void anteriorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_anteriorActionPerformed
         if (actual == null) {
             return;
@@ -860,8 +880,9 @@ public class ventana_principal extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     private void jMenuItem7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem7ActionPerformed
-        JOptionPane.showMessageDialog(null, "proyecto final, programacion I\n(estructuras de datos)");
-        JOptionPane.showMessageDialog(null, "por: Wilmer Castrillon,\nprimera aplicacion grafica\nversion 1.5");
+        JOptionPane.showMessageDialog(null, "Proyecto final, programacion I\n(estructuras de datos)");
+        JOptionPane.showMessageDialog(null, "Con ajustes posteriores");
+        JOptionPane.showMessageDialog(null, "por: Wilmer Castrillon,\nprimera aplicacion grafica\nversion 1.7");
     }//GEN-LAST:event_jMenuItem7ActionPerformed
 
     private void cargar_listaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cargar_listaActionPerformed

@@ -1,6 +1,5 @@
 package reproductor_de_musica;
 
-import java.io.PrintStream;
 import java.util.Map;
 import javazoom.jlgui.basicplayer.BasicController;
 import javazoom.jlgui.basicplayer.BasicPlayer;
@@ -10,37 +9,38 @@ import javazoom.jlgui.basicplayer.BasicPlayerListener;
 public class Zplayer implements BasicPlayerListener {
 
     BasicPlayer player = new BasicPlayer();
-    PrintStream out;
     BasicController control = (BasicController) player;
     float[] equalizador;
     float[] eq = new float[32]; 
+    ventana_principal vp;
 
-    public Zplayer() {
+    public Zplayer(ventana_principal v) {
         player.addBasicPlayerListener(this);
-        out = System.out;
+        vp = v;
     }
 
+    @Override
     public void opened(Object o, Map properties) {
-        display("opened : " + properties.toString());
+        //System.out.println("opened : " + properties.toString());
     }
 
+    @Override
     public void progress(int i, long l, byte[] bytes, Map properties) {
         equalizador = (float[]) properties.get("mp3.equalizer");
         System.arraycopy(eq, 0, equalizador, 0, equalizador.length);
-        display("progress : " + properties.toString()); 
+        //System.out.println("progress : " + properties.toString()); 
     }
 
+    @Override
     public void stateUpdated(BasicPlayerEvent event) {
-        display("stateUpdated : " + event.toString()); 
-    }
-
-    public void setController(BasicController controller) {
-        display("setController : " + controller); 
-    }
-
-    public void display(String msg) {
-        if (out != null) {
-//            out.println(msg);
+        //System.out.println("stateUpdated : " + event.toString()); 
+        if (player.getStatus() == BasicPlayer.STOPPED && vp.detenido == false) {
+            vp.eventoSiguiente();
         }
+    }
+
+    @Override
+    public void setController(BasicController controller) {
+        //System.out.println("setController : " + controller); 
     }
 }
